@@ -81,6 +81,12 @@ function replaceWordsInDictionary() {
     console.log(cwd);
     const uri = path.join(cwd, "replace.dic");
     const dictionary = fs.readFileSync(uri, 'utf-8');
+
+    // find indent size
+    const start_line = selection.start.line;
+    const line_text = document.lineAt(start_line);
+    const indent_size = line_text.text.match(/^ */)[0].length;
+
     let tmp = text;
     dictionary.split(/\r?\n/).forEach(line =>  {
         if (line[0] == '#' || line.length == 0) {
@@ -91,6 +97,14 @@ function replaceWordsInDictionary() {
         const value = kv[1];
         tmp = tmp.replace(key, value);
     });
+
+    // insert CLRF at Japanese punctuations
+    if ((tmp.match('\n') || []).length < 2) {
+        tmp = tmp.split(/。/).map(line => {
+            return " ".repeat(indent_size) + line
+        }).join('。\n');
+    }
+
     editor.edit(editBuilder => {
         editBuilder.replace(selection, tmp);
     });

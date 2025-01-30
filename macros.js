@@ -21,13 +21,39 @@ module.exports.macroCommands = {
         no: 1,
         func: removeCFLRandSpace
     },
-    ReplaceWordsInDictionary: {
+    RemoveReSTCFLRandSpace: {
         no: 2,
+        func: removeReSTCFLRandSpace
+    },
+    ReplaceWordsInDictionary: {
+        no: 3,
         func: replaceWordsInDictionary
     }
 };
 
 function removeCFLRandSpace() {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+        return 'Editor is not opening';
+    }
+    const document = editor.document;
+    const selection = editor.selection;
+    const text = document.getText(selection);
+    if (text.length == 0) {
+        return
+    }
+    // find indent size
+    const start_line = selection.start.line;
+    const line_text = document.lineAt(start_line);
+    const indent_size = line_text.text.match(/^ */)[0].length;
+    let tmp = text.replace(/\r?\n/g, ' ');
+    tmp = " ".repeat(indent_size) + tmp.replace(/\s+/g, " ");
+    editor.edit(editBuilder => {
+        editBuilder.replace(selection, tmp);
+    });
+}
+
+function removeReSTCFLRandSpace() {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
         return 'Editor is not opening';
@@ -88,7 +114,7 @@ function replaceWordsInDictionary() {
     const indent_size = line_text.text.match(/^ */)[0].length;
 
     let tmp = text;
-    dictionary.split(/\r?\n/).forEach(line =>  {
+    dictionary.split(/\r?\n/).forEach(line => {
         if (line[0] == '#' || line.length == 0) {
             return;
         }

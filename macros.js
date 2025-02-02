@@ -103,9 +103,10 @@ function replaceWordsInDictionary() {
     if (text.length == 0) {
         return
     }
-    const cwd = path.dirname(vscode.window.activeTextEditor.document.uri.fsPath);
-    console.log(cwd);
-    const uri = path.join(cwd, "replace.dic");
+    const resource = vscode.window.activeTextEditor.document.uri;
+    const folder = vscode.workspace.getWorkspaceFolder(resource);
+    console.log(folder);
+    const uri = path.join(folder.uri.fsPath, "replace.dic");
     const dictionary = fs.readFileSync(uri, 'utf-8');
 
     // find indent size
